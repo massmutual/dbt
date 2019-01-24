@@ -1,5 +1,6 @@
 from dbt.logger import GLOBAL_LOGGER as logger
 
+from dbt.adapters.vertica import VerticaAdapter
 from dbt.adapters.postgres import PostgresAdapter
 from dbt.adapters.redshift import RedshiftAdapter
 from dbt.adapters.snowflake import SnowflakeAdapter
@@ -11,6 +12,7 @@ import threading
 
 
 ADAPTER_TYPES = {
+    'vertica': VerticaAdapter,
     'postgres': PostgresAdapter,
     'redshift': RedshiftAdapter,
     'snowflake': SnowflakeAdapter,

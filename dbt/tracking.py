@@ -14,7 +14,9 @@ import dbt.clients.system
 
 sp_logger.setLevel(100)
 
-COLLECTOR_URL = "fishtownanalytics.sinter-collect.com"
+## NH 1/24/2019 changed. not sure what this is about....
+## COLLECTOR_URL = "fishtownanalytics.sinter-collect.com"
+COLLECTOR_URL = "xx.com"
 COLLECTOR_PROTOCOL = "https"
 
 INVOCATION_SPEC = 'iglu:com.dbt/invocation/jsonschema/1-0-0'

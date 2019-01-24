@@ -3,6 +3,37 @@ from dbt.api.object import APIObject
 from dbt.contracts.common import named_property
 from dbt.logger import GLOBAL_LOGGER as logger  # noqa
 
+VERTICA_CREDENTIALS_CONTRACT = {
+    'type': 'object',
+    'additionalProperties': False,
+    'properties': {
+        'dbname': {
+            'type': 'string',
+        },
+        'host': {
+            'type': 'string',
+        },
+        'user': {
+            'type': 'string',
+        },
+        'pass': {
+            'type': 'string',
+        },
+        'port': {
+            'type': 'integer',
+            'minimum': 0,
+            'maximum': 65535,
+        },
+        'schema': {
+            'type': 'string',
+        },
+        'keepalives_idle': {
+            'type': 'integer',
+        },
+    },
+    'required': ['dbname', 'host', 'user', 'pass', 'port', 'schema'],
+}
+
 POSTGRES_CREDENTIALS_CONTRACT = {
     'type': 'object',
     'additionalProperties': False,
@@ -152,7 +183,7 @@ CONNECTION_CONTRACT = {
     'additionalProperties': False,
     'properties': {
         'type': {
-            'enum': ['postgres', 'redshift', 'snowflake', 'bigquery'],
+            'enum': ['vertica', 'postgres', 'redshift', 'snowflake', 'bigquery'],
         },
         'name': {
             'type': ['null', 'string'],
@@ -173,6 +204,7 @@ CONNECTION_CONTRACT = {
                 'The credentials object here should match the connection type.'
             ),
             'anyOf': [
+                VERTICA_CREDENTIALS_CONTRACT,
                 POSTGRES_CREDENTIALS_CONTRACT,
                 REDSHIFT_CREDENTIALS_CONTRACT,
                 SNOWFLAKE_CREDENTIALS_CONTRACT,
@@ -209,6 +241,26 @@ class Credentials(APIObject):
         """
         raise NotImplementedError
 
+
+class VerticaCredentials(Credentials):
+    SCHEMA = VERTICA_CREDENTIALS_CONTRACT
+
+    @property
+    def type(self):
+        return 'vertica'
+
+    def incorporate(self, **kwargs):
+        if 'password' in kwargs:
+            kwargs['pass'] = kwargs.pop('password')
+        return super(VerticaCredentials, self).incorporate(**kwargs)
+
+    @property
+    def password(self):
+        # we can't access this as 'pass' since that's reserved
+        return self._contents['pass']
+
+    def _connection_keys(self):
+        return ('host', 'port', 'user', 'dbname', 'schema')
 
 class PostgresCredentials(Credentials):
     SCHEMA = POSTGRES_CREDENTIALS_CONTRACT
@@ -269,6 +321,7 @@ class BigQueryCredentials(Credentials):
 
 
 CREDENTIALS_MAPPING = {
+    'vertica': VerticaCredentials,
     'postgres': PostgresCredentials,
     'redshift': RedshiftCredentials,
     'snowflake': SnowflakeCredentials,
