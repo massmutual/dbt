@@ -245,9 +245,8 @@ class DefaultAdapter(object):
                         model_name=None):
         if dbt.flags.USE_CACHE:
             self.cache.rename(from_relation, to_relation)
-        sql = 'alter table {} rename to {}'.format(
-            from_relation, to_relation.include(schema=False))
-
+        sql = 'alter {} {} rename to {}'.format(
+            to_relation.type, from_relation, to_relation.include(schema=False))
         connection, cursor = self.add_query(sql, model_name)
 
     @classmethod
