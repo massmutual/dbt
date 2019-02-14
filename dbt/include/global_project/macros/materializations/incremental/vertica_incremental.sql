@@ -1,7 +1,3 @@
-{% macro dbt__test_output(value) -%}
-  insert into testing.testoutput (whn, statement) VALUES (now(), '{{ value }}' );
-{%- endmacro %}
-
 {% macro dbt__incremental_delete(target_relation, tmp_relation) -%}
 
   {%- set unique_key = config.require('unique_key') -%}
@@ -10,7 +6,7 @@
   from {{ target_relation }}
   where ({{ unique_key }}) in (
     select ({{ unique_key }})
-    from {{ tmp_relation.include(schema=True) }}
+    from {{ tmp_relation.include(schema=False) }}
   );
 
 {%- endmacro %}
@@ -75,20 +71,10 @@
        {{ dbt.create_table_as(True, tmp_relation, tmp_table_sql) }}
 
      {%- endcall -%}
-     -- `COMMIT` happens here
-     {{ adapter.commit() }}
 
      {{ adapter.expand_target_column_types(temp_table=tmp_identifier,
                                            to_schema=schema,
                                            to_table=identifier) }}
-
-     -- Check the unique_key and sql_where:
-     {%- call statement() -%}
-        {{ dbt__test_output("A: sql_where: {}".format(sql_where)) }}
-     {%- endcall -%}
-     {%- call statement() -%}
-        {{ dbt__test_output("B: unique_key: {}".format(unique_key)) }}
-     {%- endcall -%}
 
      {%- call statement('main') -%}
        {% set dest_columns = adapter.get_columns_in_table(schema, identifier) %}
@@ -103,7 +89,7 @@
        insert into {{ target_relation }} ({{ dest_cols_csv }})
        (
          select {{ dest_cols_csv }}
-         from {{ tmp_relation.include(schema=True) }}
+         from {{ tmp_relation.include(schema=False) }}
        );
      {% endcall %}
   {%- endif %}
@@ -115,6 +101,7 @@
 
   {{ run_hooks(post_hooks, inside_transaction=False) }}
 
-
+  -- NH: for vertica global temporary are not cleaned up automatically
+  {{ drop_relation_if_exists(tmp_relation) }}
 
 {%- endmaterialization %}
