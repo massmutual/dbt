@@ -1,7 +1,3 @@
-{% macro dbt__test_output(value) -%}
-  insert into testing.testoutput (whn, statement) VALUES (now(), '{{ value }}' );
-{%- endmacro %}
-
 {% macro dbt__incremental_delete(target_relation, tmp_relation) -%}
 
   {%- set unique_key = config.require('unique_key') -%}
@@ -82,14 +78,6 @@
                                            to_schema=schema,
                                            to_table=identifier) }}
 
-     -- Check the unique_key and sql_where:
-     {%- call statement() -%}
-        {{ dbt__test_output("A: sql_where: {}".format(sql_where)) }}
-     {%- endcall -%}
-     {%- call statement() -%}
-        {{ dbt__test_output("B: unique_key: {}".format(unique_key)) }}
-     {%- endcall -%}
-
      {%- call statement('main') -%}
        {% set dest_columns = adapter.get_columns_in_table(schema, identifier) %}
        {% set dest_cols_csv = dest_columns | map(attribute='quoted') | join(', ') %}
@@ -115,6 +103,7 @@
 
   {{ run_hooks(post_hooks, inside_transaction=False) }}
 
-
+  -- NH: for vertica global temporary are not cleaned up automatically
+  {{ drop_relation_if_exists(tmp_relation) }}
 
 {%- endmaterialization %}
