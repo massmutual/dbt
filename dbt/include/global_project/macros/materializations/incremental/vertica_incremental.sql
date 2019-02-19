@@ -6,7 +6,7 @@
   from {{ target_relation }}
   where ({{ unique_key }}) in (
     select ({{ unique_key }})
-    from {{ tmp_relation.include(schema=True) }}
+    from {{ tmp_relation.include(schema=False) }}
   );
 
 {%- endmacro %}
@@ -71,8 +71,6 @@
        {{ dbt.create_table_as(True, tmp_relation, tmp_table_sql) }}
 
      {%- endcall -%}
-     -- `COMMIT` happens here
-     {{ adapter.commit() }}
 
      {{ adapter.expand_target_column_types(temp_table=tmp_identifier,
                                            to_schema=schema,
@@ -91,7 +89,7 @@
        insert into {{ target_relation }} ({{ dest_cols_csv }})
        (
          select {{ dest_cols_csv }}
-         from {{ tmp_relation.include(schema=True) }}
+         from {{ tmp_relation.include(schema=False) }}
        );
      {% endcall %}
   {%- endif %}
