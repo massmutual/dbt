@@ -1,0 +1,60 @@
+
+# For more information on how to configure this file, please see:
+# https://github.com/fishtown-analytics/dbt/blob/master/sample.profiles.yml
+
+#default:
+#  outputs:
+#    dev:
+#      type: redshift
+#      threads: 1
+#      host: 127.0.0.1
+#      port: 5439
+#      user: alice
+#      pass: pa55word
+#      dbname: warehouse
+#      schema: dbt_alice
+#    prod:
+#      type: redshift
+#      threads: 1
+#      host: 127.0.0.1
+#      port: 5439
+#      user: alice
+#      pass: pa55word
+#      dbname: warehouse
+#      schema: analytics
+#  target: dev
+#
+
+default:
+  outputs:
+    verticalocal:
+      type: vertica
+      threads: 1
+      host: "{{ env_var('DBT_VERTICA_HOST') }}"
+      port: "{{ env_var('DBT_VERTICA_PORT') }}"
+      user: "{{ env_var('DBT_VERTICA_USER') }}"
+      pass: "{{ env_var('DBT_VERTICA_PASSWORD') }}"
+      dbname: "{{ env_var('DBT_VERTICA_DATABASE') }}"
+      schema: "{{ env_var('DBT_VERTICA_SCHEMA') }}"
+    dev:
+      type: hello
+      threads: 3
+      host: 127.0.0.1
+      port: 5432
+      user: "{{ env_var('DBT_USER') }}"
+      pass: "{{ env_var('DBT_PASSWORD') }}"
+      dbname: hello
+      schema: test_dbt
+    prod:
+      type: redshift
+      threads: 1
+      host: 127.0.0.1
+      port: 5439
+      user: alice
+      pass: pa55word
+      dbname: warehouse
+      schema: analytics
+  target: verticalocal
+config:
+  send_anonymous_usage_stats: False
+  use_colors: True
