@@ -69,10 +69,14 @@ class VerticaAdapter(dbt.adapters.default.DefaultAdapter):
         kwargs = {}
         keepalives_idle = credentials.get('keepalives_idle',
                                           cls.DEFAULT_TCP_KEEPALIVE)
+        ssl_enabled = credentials.get('ssl', False)
         # we don't want to pass 0 along to connect() as vertica will try to
         # call an invalid setsockopt() call (contrary to the docs).
         if keepalives_idle:
             kwargs['keepalives_idle'] = keepalives_idle
+        if ssl_enabled:
+            print('SSL IS ENABLED...')
+            kwargs['ssl'] = 'enabled'
 
         try:
             handle = vertica_python.connect(
@@ -168,7 +172,7 @@ class VerticaAdapter(dbt.adapters.default.DefaultAdapter):
 
     def _list_relations(self, schema, model_name=None):
         sql = """
-        select table_name as name, schema_name as schema, lower(table_type) as type 
+        select table_name as name, schema_name as schema, lower(table_type) as type
         from v_catalog.all_tables
         where table_type in ('TABLE', 'VIEW') and
         schema_name ilike '{schema}'
@@ -216,7 +220,7 @@ class VerticaAdapter(dbt.adapters.default.DefaultAdapter):
         but should not affect us as dbt does work across databases
         and we do not expect that convertion to ever be called
         '''
-        
+
         return "long varchar"
 
     @classmethod
