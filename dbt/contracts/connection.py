@@ -30,6 +30,9 @@ VERTICA_CREDENTIALS_CONTRACT = {
         'keepalives_idle': {
             'type': 'integer',
         },
+        'ssl': {
+            'type': 'boolean',
+        },
     },
     'required': ['dbname', 'host', 'user', 'pass', 'port', 'schema'],
 }
